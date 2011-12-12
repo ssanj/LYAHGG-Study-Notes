@@ -1,0 +1,177 @@
+Types
+-----
+:: read as "has a type of"
+Explicit types start with a uppercase letter
+Does that mean there are implicit types? If so what are they?
+Functions also have types
+It's considered good practice to define your function types (except for very short functions)
+
+Common Haskell Types
+--------------------
+
+ Int
+	Integers/whole numbers
+	Has a minimum and maximum value (bounded)
+	Size is determined by the machine word of your computer. ~ [(-2)^63.. 2^63 - 1]
+ Integer 	
+    Stores integers
+	Not bounded - Can represent really big numbers
+	Less efficient than Int
+ Float
+    Floating point numbers with single precision. ~6 decimal places
+ Double
+   Floating point number with double precision. ~15 decimal places
+ Bool
+   Boolean with values False and True
+ Char
+   Unicode Character. [Char] is a String.
+ Tuples
+   Length of types of members defines its type. 
+
+Type Variables
+---------------
+   Can represent any type
+   Specified in lowercase and usually one character long
+   Similar to Generics in Java.
+   Allow functions to operate on various types in a type-safe manner
+   Functions that use type variables are called polymorphic functions
+   Eg. head, fst, cycle.
+
+   Specify that a parameter can be of any type.
+   Signified by a lowercase character. Eg. head :: [a] -> a
+   Functions that operate on type variables are called Polymorphic functions. Eg. fst.
+
+Type Classes
+------------
+
+	An interface that defines some behaviour
+	Types can be instances of a type class if they define the functions of that type class as it pertains to the current type. Eg. Show Car
+	A Class constraint specifies which type classes instances are required. Eg.
+compare ::  (Ord a) => a -> a -> Ordering
+	All Haskell standard types are instances of Eq, with the exception of input/output types and functions.
+	Eq type class: == /= functions
+	Ord type class: > >= < <= 
+	Ordering: LT GT EQ (enumeration)
+		compare :: (Ord a) => a -> a -> Ordering
+		>, >=, <, <= :: (Ord a) => a -> a -> Bool 
+	show :: (Show a) => a -> String. Is the like toString. It coverts a type to a String.
+	read :: (Read a) => String -> a. Converts a String to another type a. 
+	    Throws an Exception if it can't parse the value supplied
+	    Eg: read "123.4" :: Float
+	Enum - instances can be sequentially ordered.
+		Can be used in list ranges
+		succ :: (Enum a) => a -> a
+		pred :: (Enum a) => a -> a		
+	Bounded - have upper and lower bounds.
+	    Can be checked with maxBound, minBound.
+	    Eg. Int, Bool, Char
+	Num - Numeric type.
+		Its instances can act like numbers.
+		Must also be instances of Eq and Show. (No Read?)
+	Floating - Floating-point number types
+		Includes Float and Double types
+		Eg: sin, cos, tan. (prefix functions)
+		Converting between floating types:
+			import GHC.Float
+			float2Double :: Float -> Double
+			double2Float :: Double -> Float		
+	RealFrac - Extracting components of fractions.
+		Float and Double are instances.
+		properFraction :: (RealFrac a, Integral b) => a -> (b, a)
+		properFraction 123.123 -> (123,0.12300000000000466)
+	Integral - Whole numbers only
+		includes Int and Integer
+		fromIntegral :: (Num b, Integral a,) a -> b
+		Converting to Integral is a lossy.
+			ceiling  :: (RealFrac a, Integral b) => a -> b
+			floor    :: (RealFrac a, Integral b) => a -> b
+			truncate :: (RealFrac a, Integral b) => a -> b
+			round    :: (RealFrac a, Integral b) => a -> b		
+	Rational- represent rational numbers exactly as the ratio of two Integers
+		toRational :: (Real a) => a -> Rational
+		Applying toRational to an Integral value n will produce the rational number n % 1
+		Applying toRational to a decimal (i.e. Fractional or Floating) value will produce a rational approximation
+		You can also construct Rational values explicitly using the % operator.
+	
+	A type class can have many type instances and a type can be an instance of many type classes.
+Type Annotations
+-----------------
+	:: -> explicitly specific the type of a function. Similar to cast?
+
+Things of interest
+------------------
+
+1. the "it" variable stores the result of the previous expression.
+2. Application of $ :
+   length $ show $ circumference' 2.56
+3. If a function is composed of only specical characters, it is infix by default.
+4. Show "abc" -> "\"abc\""
+5. read "[1,2,3,4]" ++ [5]
+6. read "[[1,2,3,4], [5,6,7]]" ++ [[8,9]] (works!)
+7. succ/pred throws an Exception if passed the end/start of an enumeration.
+8. maxBound :: Char -> '\1114111', minBound :: Char -> '\NUL'
+9. signum :: (Num a) => a -> a (used for comparing)
+10. Monomorphism is the opposite of polymorphism. Eg. add :: Int -> Int -> Int.
+
+Questions
+---------
+
+1. How do you find the max and min values of an Int?
+   maxBound and minBound.
+   Eg. maxBound :: Int
+2. What is single/double precision?
+3. How do you convert a number to a String/[Char].
+   Show converts from an a -> String
+   Read converts from a String -> a
+4. Why doesn't length [1..5] :: Float work?
+5. Why do we get the wrong types when we alias a polymorphic function?
+	Eg. let p = (+), gives the wrong types: Integer -> Integer -> Integer
+	instead of (Num a) => a -> a -> a
+
+General Errors
+--------------
+
+The type signature for method_name
+      lacks an accompanying binding
+
+this basically means you don't have a matching function implementation for your function definition. If an implementation exists it does not have the same name as the function definition.
+
+
+Group Questions
+----------------
+
+
+1. The following function calculates the radius of a circle and takes a Floating and returns a Floating:
+
+let radius r = 2 * pi * r
+
+Write it with a type definition where it only accepts Integers, and returns a Double:
+
+2. Write a function called push that takes any Num, and a list of Num, and returns a new list with the item we're adding at the head of the list. Eg:
+
+push 1 [2, 3] == [1, 2, 3]
+
+The function should not compile when either the list, or the item we're pushing, is not a Num.
+
+3. Write an infix version of push. You could reuse your answer from #2 to help. Eg:
+
+1 >> [2, 3] == [1, 2, 3]
+
+Answers
+-------
+
+{-- Question 1 --}
+radius :: Integer -> Double
+radius r = 2 * pi * (fromIntegral r)
+
+
+{-- Question 2 --}
+push :: (Num a) => a -> [a] -> [a]
+push x xs = x : xs
+
+{-- Question 3--}
+(->>) :: (Num a) => a -> [a] -> [a]
+(->>) = push 
+
+{-- Does not work with Real numbers. --}
+(>>>) = push

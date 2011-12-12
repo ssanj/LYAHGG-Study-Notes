@@ -1,0 +1,215 @@
+Syntax in Functions
+--------------------
+
+Pattern Matching
+-----------------
+
+ Pattern to which some data conforms
+ The data is deconstructed according to said patterns
+ Deconstruction is the opposite of construction
+ Can defined separate function bodies for different patterns
+ Can pattern match on almost all data types (Lists, tuples, Int etc)
+ Patterns are checked top to bottom - Similar to a switch statement in Java.
+ Any valid value for a type of a given parameter can be used to pattern match.
+
+ Eg. lucky :: Int -> String
+     lucky 7 =
+     lucky (-1) =
+     lucky x =
+
+ Where a character name is used, it can match any valid value of the argument type.
+ If a specific value is given, it must exactly match a value from the argument type.
+ When a passed argument matches a pattern, its function body will be executed
+ Pattern names start with a lowercase letter.
+ Move broad pattern matches to the bottom.
+ Non-exhaustive pattern matches throw errors at runtime. (Not very useful).
+ The : character will only match against Lists with length 1 or more.
+
+Pattern matching with tuples
+---------------------------
+
+ We can easily match on tuples: (x,y,z)
+ Use _ to define a variable without a name. Eg. (_, y, _)
+
+Pattern matching with Lists and List comprehensions
+----------------------------------------------------
+
+ Can be used in list comprehension to bind values.
+ If the match does not succeed for lists comprehension that value is exclude from the results. (partial function?)
+ You can match an empty list with []
+ Any pattern that involves cons and an empty list = 1:2:3:[]
+ Given x:xs for a list gives you the head in x and the tail in xs.
+ If you want to bind something to several variables you must surround them with ().
+ If you use [] to bind variables, you need to specify all combinations.
+ You can't use the ++ operator in pattern matching for lists.
+
+As-patterns
+-----------
+
+ Allows keeping a reference to pattern matched elements so they don't have to be repeated.
+ Eg. xs@(x:y:z) = xs is the original list.
+
+Guards
+------
+ | (Boolean expression) = implementation
+
+ Don't use an = before starting guards.
+ Indicated by the | character.
+ Must be indented by at least space.
+ If the Boolean condition evaluates to True, the function body is executed, if not the next guard is evaluated.
+ Similar to a big if/else in imperative languages.
+ otherwise provides a catch all if all guards fail.
+ If there is no catch all evaluation falls through to the next pattern.
+ If no suitable patterns or guards are found an error is thrown. (Non-exhaustive patterns)
+
+Where keyword
+-------------
+
+ Used to store intermediate results
+ Calculated only once
+ Similar to assigning to a variable in imperative languages
+ Binds a value or a function to a variable
+ Written after any guard statements 
+ Visible across all guards
+ Align multiple variables of where clauses in a single column (as a block)
+ Only visible in defining function
+ Not shared across function bodies of different pattern matches
+ You can also pattern match within a where statement
+   Eg. where (skinny, ugly, fat) = (18.5, 25.0, 30.0)
+
+
+Let keyword
+-----------
+
+ Binds values to names
+ Similar to where keyword, but scope is local and does not span guards
+ Map expressions
+ Can be used in pattern matching: (let (a,b,c) = (1,2,3) in a+b+c) * 100
+ let <bindings> <expression> - bindings are used in the expression scope.
+ Let expressions (as they are expressions) can be used anywhere:
+	4 * (let a = 9 in a + 1) + 2
+ let and in must align on the same column and all binds must align on the same column.
+ Bindings within a let are visible to other bindings in the same let.
+ They can be separated by ; if on the same line:
+	let a=100;b=200;c=300 in a*b*c
+	
+ In List Comprehensions
+ ----------------------	
+  in need not be used: [ bmi | (w,h) <- xs, let bmi = w / h ^ 2, bmi > 25.0]	
+  let bindings are not visible within the generator; only the guards and output.
+
+Case expressions
+----------------
+  case expression of pattern -> result
+					 pattern -> result
+  Can be used to pattern match anywhere not just at method impementations
+  					
+
+Things of Interest
+------------------
+ Are there any data types we can't pattern match on?
+ If you add overlapping matches eg:
+	lucky x =
+	lucky 7 =
+	
+	 You get the following compiler warning:
+		Warning: Pattern match(es) are overlapped
+	             In the definition of `lucky': lucky 7 = ...
+ Non-exhaustive pattern match warnings not given at compile time - in contrast to Scala.	
+ If you have lengthy if/then/else solution that can be directly mapped into a pattern matching solution.
+ How do you write a tail recursive version of factorial?
+ How can a pattern match fail in list comprehension?
+ tell (x:y:_) => matches a list of 2 or more elements
+ tell [x,y,_] => matches only a list of 3 elements
+ When to use () and when to use [] for list pattern matching?
+ What are the other operators in addition to : that can be pattern matched against? We know that ++ can't be used.
+ Use of infix notation in function defintions:
+	myCompare :: (Ord a) => a -> a -> Ordering
+	a `myCompare` b
+	  | a == b = EQ
+	  | a < b = LT
+	  | otherwise = GT
+ Can you define types for functions defined within a where clause?
+ Why do we have pattern matching, let, where and case expressions? Seems redundant.
+ Where ever you define a function (eg. in a where or let) you can use pattern matching.
+
+Questions
+---------
+
+1. Define a recursive function mult that takes two positive integers a and b and 
+ returns a * b, but only uses addition.
+
+2. Rewrite the following function using let statements
+
+roots a b c =
+    ((-b + sqrt(b*b - 4*a*c)) / (2*a),
+     (-b - sqrt(b*b - 4*a*c)) / (2*a))
+
+3. 	Using Guards, define a function named sign that takes a single numeric parameter.
+	The function will return 1 if the parameter is positive, -1 if the parameter is negative or 0 otherwise.
+	
+4. 	 Euler Problem 1:
+	If we list all the natural numbers below 10 that are multiples of 3 or 5, we get 3, 5, 6 and 9. 
+	The sum of these multiples is 23.
+	Find the sum of all the multiples of 3 or 5 below 1000.
+
+	Solve Euler Problem 1 using each of the following language constructs:
+	    a) Pattern Matching
+	    b) Guards
+	    c) Where
+	    d) Let
+	    e) Case
+
+Answers
+-------
+
+1. 
+
+mult :: Int -> Int -> Int
+mult 0 _ = 0
+mult _ 0 = 0
+mult a b = a + (a `mult` (b - 1))
+
+2.
+
+roots1 a b c = 
+	let f1 = sqrt(b*b - 4*a*c)
+	    f2 = 2*a
+	in ((-b + f1) / f2, (-b - f1)/f2)
+	
+roots2 a b c = ((-b + f1) / f2, (-b - f1)/f2)	
+  where f1 = sqrt(b*b - 4*a*c) 
+        f2 = 2*a
+
+3.
+
+sign :: (Ord a, Num a) => a -> Int
+sign n
+  | n < 0 = (-1)
+  | n > 0 = 1
+  | otherwise = 0
+
+
+4. 
+
+euler1pm :: Int -> Int
+euler1pm 1000 = sum [3,6..1000] + sum [5,10..1000] - sum [15,30..1000]
+euler1pm _ = error "only calculates for a thousand"  
+
+euler1grd :: Int -> Int
+euler1grd x
+  | x  == 1000 = sum [3,6..1000] + sum [5,10..1000] - sum [15,30..1000]
+  | otherwise = error "only calculates for a thousand"
+  
+euler1whr :: Int -> Int
+euler1whr 1000 = calcSum
+    where calcSum = sum [3,6..1000] + sum [5,10..1000] - sum [15,30..1000]
+euler1whr x = error "only calculates for a thousand"
+
+euler1let :: Int -> Int
+euler1let 1000 = let calcSum = sum [3,6..1000] + sum [5,10..1000] - sum [15,30..1000] in calcSum
+euler1let x = error "only calculates for a thousand"
+
+euler1cse :: Int -> Int
+euler1cse x = case x of 1000 -> sum [3,6..1000] + sum [5,10..1000] - sum [15,30..1000]
+                        _ -> error "only calculates for a thousand"
