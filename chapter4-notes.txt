@@ -193,23 +193,21 @@ sign n
 4. 
 
 euler1pm :: Int -> Int
-euler1pm 1000 = sum [3,6..1000] + sum [5,10..1000] - sum [15,30..1000]
-euler1pm _ = error "only calculates for a thousand"  
+euler1pm x =  sum [n | n <- [1 .. (x-1)], (n `mod` 3 == 0 || n `mod` 5 == 0)]
 
 euler1grd :: Int -> Int
-euler1grd x
-  | x  == 1000 = sum [3,6..1000] + sum [5,10..1000] - sum [15,30..1000]
-  | otherwise = error "only calculates for a thousand"
-  
+euler1grd x = sum [n | n <- [1 .. (x-1)], filter n]
+  where filter n
+         | n `mod` 3 == 0 || n `mod` 5 == 0 = True
+         | otherwise = False
+      
 euler1whr :: Int -> Int
-euler1whr 1000 = calcSum
-    where calcSum = sum [3,6..1000] + sum [5,10..1000] - sum [15,30..1000]
-euler1whr x = error "only calculates for a thousand"
+euler1whr x = sum [n | n <- [1 .. (x-1)], threeOrFive n]
+  where threeOrFive y = y `mod` 3 == 0 || y `mod` 5 == 0
 
 euler1let :: Int -> Int
-euler1let 1000 = let calcSum = sum [3,6..1000] + sum [5,10..1000] - sum [15,30..1000] in calcSum
-euler1let x = error "only calculates for a thousand"
+euler1let x = sum [n | n <- [1..(x-1)], let threeOrFive = n `mod` 3 == 0 || n `mod` 5 == 0]
 
 euler1cse :: Int -> Int
-euler1cse x = case x of 1000 -> sum [3,6..1000] + sum [5,10..1000] - sum [15,30..1000]
-                        _ -> error "only calculates for a thousand"
+euler1cse x = case [n | n <- [1 .. (x -1)], n `mod` 3 == 0 || n `mod` 5 == 0] of [] -> 0
+                                                                                 xs -> sum (xs)

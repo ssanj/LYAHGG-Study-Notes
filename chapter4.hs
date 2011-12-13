@@ -227,32 +227,24 @@ Solve Euler Problem 1 using each of the following language constructs:
 --}
 
 euler1pm :: Int -> Int
-euler1pm 1000 = sum [3,6..999] + sum [5,10..999] - sum [15,30..999]
-euler1pm _ = error "only calculates for a thousand"  
+euler1pm x =  sum [n | n <- [1 .. (x-1)], (n `mod` 3 == 0 || n `mod` 5 == 0)]
 
 euler1grd :: Int -> Int
-euler1grd x
-  | x  == 1000 = sum [3,6..999] + sum [5,10..999] - sum [15,30..999]
-  | otherwise = error "only calculates for a thousand"
-  
-{-- Totally unexpected! --}  
-euler1grd2 :: Int -> [Int]
-euler1grd2 n = [x | x <- [1 .. (n-1)], (x `mod` 3 == 0 || x `mod` 5 == 0)]
-  
-  
+euler1grd x = sum [n | n <- [1 .. (x-1)], filter n]
+  where filter n
+         | n `mod` 3 == 0 || n `mod` 5 == 0 = True
+         | otherwise = False
+      
 euler1whr :: Int -> Int
-euler1whr 1000 = calcSum
-    where calcSum = sum [3,6..999] + sum [5,10..999] - sum [15,30..999]
-euler1whr _ = error "only calculates for a thousand"
+euler1whr x = sum [n | n <- [1 .. (x-1)], threeOrFive n]
+  where threeOrFive y = y `mod` 3 == 0 || y `mod` 5 == 0
 
 euler1let :: Int -> Int
-euler1let 1000 = let calcSum = sum [3,6..999] + sum [5,10..999] - sum [15,30..999] in calcSum
-euler1let _ = error "only calculates for a thousand"
+euler1let x = sum [n | n <- [1..(x-1)], let threeOrFive = n `mod` 3 == 0 || n `mod` 5 == 0]
 
 euler1cse :: Int -> Int
-euler1cse x = case x of 999 -> sum [3,6..999] + sum [5,10..999] - sum [15,30..999]
-                        _ -> error "only calculates for a thousand"
-                        
+euler1cse x = case [n | n <- [1 .. (x -1)], n `mod` 3 == 0 || n `mod` 5 == 0] of [] -> 0
+                                                                                 xs -> sum (xs)        
 roots3 a b c =
   let f1 = 4 * a * c
       f2 = 2 * a                        
