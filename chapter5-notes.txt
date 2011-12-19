@@ -1,0 +1,86 @@
+Hello Recursion
+---------------
+  
+Recursion
+---------
+ Function that calls itself
+ Break the problem down into smaller problems of the same kind
+ Break down subproblems until you reach base cases (problems that can't be broken down further)
+ When base cases are reached explicit solutions need to be given
+
+
+Things of Interest
+------------------
+ * If you define replicate' as:
+    replicate' n v = v : (replicate' n-1 v) 
+   you get the following compilation error:
+	   Couldn't match expected type `[a]'
+	           against inferred type `a1 -> [a1]'
+	    In the second argument of `(:)', namely `(replicate' n - 1 v)'
+	    In the expression: v : (replicate' n - 1 v)
+	    In the definition of `replicate'':
+	        replicate' n v = v : (replicate' n - 1 v)
+	Failed, modules loaded: none.
+  you need to define it as the following:
+   replicate' n v = v : (replicate' (n-1) v)	
+ * In the solution for repeat', there is no explicit list creation.
+ * If you pattern match (x:xs) on an empty list you get a exception.
+
+Questions
+---------
+
+Answers
+-------
+
+1.
+
+doubleFactorial :: Int -> Int
+doubleFactorial n
+  | n <= 1 = 1
+doubleFactorial n = n * doubleFactorial (n - 2)
+
+doubleFactorial' :: Int -> Int -> Int
+doubleFactorial' n t
+  | n <= 1 = t
+doubleFactorial' n t = doubleFactorial' (n - 2)  n * t
+
+doubleFactorial'' :: Int -> Int
+doubleFactorial'' n
+ | n <= 1 = 0
+doubleFactorial'' n = doDoubleFactorial n 1
+  where doDoubleFactorial :: Int -> Int -> Int
+        doDoubleFactorial n t
+         | n <= 1 = t
+         | otherwise = doDoubleFactorial (n - 2) n * t
+
+2.
+
+log2 :: Integer -> Integer
+log2 n
+  | n <= 1 = 0
+  | otherwise = 1 + log2 (n `div` 2)
+  
+  
+log2' :: Integer -> Integer -> Integer
+log2' n t
+  | n <= 1 = t
+  | otherwise = log2' (n `div` 2) 1+t
+  
+log2'' :: Integer -> Integer
+log2'' n
+  | n <= 1 = 0
+log2'' n =
+  let doLog2 n t 
+       | n <= 1 = t
+      doLog2 n t = doLog2 (n `div` 2) 1 + t 
+  in doLog2 n 0
+
+3.
+
+hanoi :: a -> a -> a -> Int -> [(a, a)]
+hanoi source using dest n
+    | n == 0 = []
+    | n == 1 = [(source, dest)]
+    | otherwise = hanoi source dest using (n-1) 
+                  ++ hanoi source using dest 1
+                         ++ hanoi using source dest (n-1)
