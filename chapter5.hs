@@ -72,11 +72,11 @@ doubleFactorial' n t
   | n <= 1 = t
 doubleFactorial' n t = doubleFactorial' (n - 2)  n * t
 
-doubleFactorial'' :: Int -> Int
+doubleFactorial'' :: Integer -> Integer
 doubleFactorial'' n
  | n <= 1 = 0
 doubleFactorial'' n = doDoubleFactorial n 1
-  where doDoubleFactorial :: Int -> Int -> Int
+  where doDoubleFactorial :: Integer -> Integer -> Integer
         doDoubleFactorial n t
          | n <= 1 = t
          | otherwise = doDoubleFactorial (n - 2) n * t

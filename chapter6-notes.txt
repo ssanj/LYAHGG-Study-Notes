@@ -1,0 +1,126 @@
+Higher-Order Functions
+----------------------
+
+  Take functions as parameters and/or return functions as values.
+
+  Curried Functions
+  ----------------
+    * A function that only takes 1 parameter and returns a function that takes
+      the next parameter and so on until all the parameters are satisfied.
+      Eg. 
+		Int -> Int -> Int = Int -> (Int -> Int)
+		max 4 5 or (max 4) 5
+    * Every function in Haskell takes only 1 parameter.
+    * Partial application is calling a function with too few parameters.
+	  Eg. max 4
+	* Functions can be thought of as tiny factories that take some materials 
+	  and produce something else.
+	
+  Sections
+  --------
+    * Partially applied infix functions.
+    * Surround the part of the infix function to section with (). 
+      When the missing parameter is supplied the function is executed.
+      Eg.	(/10) returns: Fractional -> Fractional
+            (/10) 200 = 20.0
+    * When partially applying subtraction use the subtract function instead of the
+      - operator as that will just negate the section value.
+      Eg. (-4) is not a sectioned subtraction, use (subtract 4) instead.
+  
+  Printing Functions
+  ------------------
+    * Functions don't implement Show and therefore can't be printed.
+
+  Some Higher-Orderism Is in Order
+  --------------------------------
+   * Functions that take and/or return functions
+     Eg. 
+        applyTwice :: (a -> a) -> a -> a
+        applyTwice f x = f (f x)
+   * zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
+   * flip :: (a -> b -> c) -> (b -> a -> c)
+   
+  The Functional Programmer's Toolbox
+  -----------------------------------
+    * map :: (a -> b) -> [a] -> [b]
+    * filter :: (a -> Bool) -> [a] -> [a]
+
+	* takeWhile (a-> Bool) -> [a] -> [a]
+		Takes a predicate and a list and returns elements of the list as long as the predicate holds true. If the predicate returns false the function stops.
+		
+  Mapping Functions with Multiple Parameters
+  ------------------------------------------
+	* Passing in functions with more than a single parameter to map results in partial application of that function.
+	Eg.  zipWith ($) (map (*) [1..5]) [100,200..500] = [100,400,900,1600,2500]
+	
+  Lambdas
+  -------
+   * Anonymous functions (functions without a name)
+   * Used when we need a function only once
+   * Function is defined inline.
+   * To create a lambda use:
+     (\a b c -> function_body)
+   * Usually surrounded by parentheses.
+   * They are expressions.
+   * Partial application and lambdas can be used for similar situations
+     Eg. map (+) [1..5] and map (\x -> x + 5) [1..5]
+   * Partial application is considered more readable.
+   * Allows pattern matching but does not allow for several patterns for the same parameter.
+   * If a pattern match fails, a runtime error occurs. (seemed to be compile time.)
+   * If you write lambdas without parenthesis, it assumes that everything to the right of the -> belongs to it.
+
+  I Fold You So
+  -------------
+   * A reduction of a data structure to a single value.
+   * fold takes a binary function, a starting value and a list.
+   * Returns the starting value when called with an empty list.
+ 
+  Left Folds with foldl
+  ---------------------
+   * foldl :: (a -> b -> a) -> a -> [b] -> a
+   * Runs the supplied function from left to right on the list
+   * Sum definition:
+     sum' :: (Num a) => [a] -> a
+     sum' xs = foldl (+) 0 xs
+     
+	 because we have currying we can do:
+     sum' = foldl (+) 0 //point-free style
+   * Does not work on infinite lists.
+
+  Right Folds with foldr
+  ----------------------
+   * foldr :: (a -> b -> b) -> b -> [a] -> b
+   * The accumulator works from right to left.
+   * The order of parameters is reversed.
+   * ++ is slower than :, so with list manipulation, foldr is preferred.
+   * Work on infinite lists.
+
+  foldl1 and foldr1 functions
+  ---------------------------
+   * foldl1/foldr1 :: (a -> a -> a) -> [a] -> a
+   * Similar to foldl and foldr
+   * Don't take an accumulator value
+   * Accumulator value is derived from the first element for foldl1 and the last element for foldr1 respectively.
+   * Both functions throw exceptions when called with an empty list.
+
+Things of Interest
+------------------
+ * When to use map versus for comprehension?
+ * The following definitions are the same:
+	addThree :: Int -> Int -> Int -> Int
+	addThree = \x -> \y -> \z -> x + y + z
+
+	addThree' :: Int -> Int -> Int -> Int
+	addThree' = \x y z -> x + y + z
+
+	addThree'' :: Int -> Int -> Int -> Int
+	addThree'' x y z = x + y + z
+ * Page 73: map (flip subtract 20) [1..4], what is the associativity here?
+Questions
+---------
+
+Answers
+-------
+
+Asides
+------
