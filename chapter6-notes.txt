@@ -113,10 +113,10 @@ Higher-Order Functions
 
   Folding Infinite Lists
   -----------------------
-  * foldr sometimes works on infinite lists (not always).
-    Eg. and (repeat False)
-  * Short circuit operators like && only evaluate the RHS expression only if the LHS expression is True. This coupled with Haskell's laziness allow foldr to work on infinite lists.
-  * foldr will work on infinite lists when used with a binary function that does not need to evaluate its second parameter, all the way through to give back an answer.
+   * foldr sometimes works on infinite lists (not always).
+     Eg. and (repeat False)
+   * Short circuit operators like && only evaluate the RHS expression only if the LHS expression is True. This coupled with Haskell's laziness allow foldr to work on infinite lists.
+   * foldr will work on infinite lists when used with a binary function that does not need to evaluate its second parameter, all the way through to give back an answer.
 	
 Things of Interest
 ------------------
