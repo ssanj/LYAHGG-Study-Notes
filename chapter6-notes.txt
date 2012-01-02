@@ -103,6 +103,21 @@ Higher-Order Functions
    * Accumulator value is derived from the first element for foldl1 and the last element for foldr1 respectively.
    * Both functions throw exceptions when called with an empty list.
 
+  Another Way to Look at Folds
+  ----------------------------
+   * Given a list o [3,4,5,6]:
+		foldr =   f 3 (f 4 (f 5 (f 6 acc)))
+		foldl =  f (f (f (f z 3) 4) 5) 6
+   * Reversing a list with flip:
+		flip (:) (flip (:) (flip (:) (flip (:) [] 3) 4) 5) 6
+
+  Folding Infinite Lists
+  -----------------------
+  * foldr sometimes works on infinite lists (not always).
+    Eg. and (repeat False)
+  * Short circuit operators like && only evaluate the RHS expression only if the LHS expression is True. This coupled with Haskell's laziness allow foldr to work on infinite lists.
+  * foldr will work on infinite lists when used with a binary function that does not need to evaluate its second parameter, all the way through to give back an answer.
+	
 Things of Interest
 ------------------
  * When to use map versus for comprehension?
@@ -116,6 +131,12 @@ Things of Interest
 	addThree'' :: Int -> Int -> Int -> Int
 	addThree'' x y z = x + y + z
  * Page 73: map (flip subtract 20) [1..4], what is the associativity here?
+ * Although you can use foldr on infinite lists, you can still blow the stack if used incorrectly. There has to be a clause that limits the infiniteness of the list - like take.
+ * Why doesn't this work on infinite lists:
+   or'' :: [Bool] -> Bool
+   or'' = foldr (||) False
+   or'' (True : (repeat False))
+
 Questions
 ---------
 

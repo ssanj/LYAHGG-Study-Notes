@@ -116,3 +116,28 @@ elem' i xs = foldr (\x a -> i == x || a) False xs
 
 maximum'' :: (Ord a) => [a] -> a
 maximum'' = foldl1 max 
+
+reverse' :: [a] -> [a]
+reverse' = foldl (flip (:)) []
+
+product' :: (Num a) => [a] -> a
+product' = foldl (*) 1
+
+filter'' :: (a -> Bool) -> [a] -> [a]
+filter'' f = foldr (\v a -> if (f v) then v : a else a) []
+
+last' :: [a] -> a
+last' [] = error "last on an empty list"
+last' xs = head (foldr (\v a -> if null a then v : a else a) [] xs)
+
+last'' :: [a] -> a
+last'' =  foldl1 (\_ v -> v)
+
+and' :: [Bool] -> Bool
+and' = foldr (&&) True
+
+or' :: [Bool] -> Bool
+or' = foldr (||) False
+
+or'' :: [Bool] -> Bool
+or'' = foldr (||) False
