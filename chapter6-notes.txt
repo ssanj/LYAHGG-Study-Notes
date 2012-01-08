@@ -117,7 +117,82 @@ Higher-Order Functions
      Eg. and (repeat False)
    * Short circuit operators like && only evaluate the RHS expression only if the LHS expression is True. This coupled with Haskell's laziness allow foldr to work on infinite lists.
    * foldr will work on infinite lists when used with a binary function that does not need to evaluate its second parameter, all the way through to give back an answer.
+  
+  Scans
+  -----
+   * scanl and scanr are similar to foldl and foldr but store intermediate results
+   * for scanl the last value is the result while for scanr the first value is the result.
+   * for scanl the first intermediate value the accumulator while for scanr the last value is the accumulator.
+   * How many elements does it take for the sum of the square roots of all natural numbers to exceed 1000?
+
+  Function Application with $
+  ---------------------------
+   * $ :: (a -> b) -> a -> b
+   * has the lowest precedence (0)
+   * contrasts with normal function application with spaces which has a high precedence.
+     (?)
+   * Normal function application is left associative.
+     Eg. f a b c = (((f a) b) c)
+   * $ function application is right associative.
+   * What is it good for? Writing cleaner expressions with fewer parentheses.
+     Eg. sum (map sqrt [1..130]) == sum $ map sqrt [1..130]
+     Since $ is of lower precedence and right associative, map sqrt is executed first 
+      and then supplied to sum.
+   * You can imagine $ as being equivalent to writing an opening parenthesis and and a closing one at the far right of the expression on the right.
+     Eg. sqrt 3+4+9 = 14.73
+         sqrt (3+4+9) = 4.0
+         sqrt $ 3+4+9 = 4.0
+
+         sum (filter (>10) (map (*2) [2..10])) ==
+         sum $ filter (>10) (map (*2) [2..10]) ==
+		 sum $ filter (>10) $ map (*2) [2..10] ==
+   * Allows us to treat function application as just another function.
+ 	 Eg. map ($ 3) [(4+), (10*), (^2), sqrt]
+         :t ($) ==   (a -> b) -> a -> b
+         when you supply a, b is returned:
+         :t ($ 3) == (a -> b) -> b
+
+  Function Composition
+  --------------------
+  * Function composition is defined as (f.g)(x) = f(g(x)).
+  * Composing two functions is the equivalent of calling one function with some value and
+    then calling another function with the result of the first function.
+  * Function composition is right associative
+  * negate . (*3) = multiply a number by 3 and then negate the resulting number.
+  * Say we want to negate a list of numbers:
+    map negate $ map abs [1, 2, -3, 4, -5, -6, 7]
+    map (\x -> negate $ abs x) [1, 2, -3, 4, -5, -6, 7]
+	map (\x -> negate (abs x)) [1, 2, -3, 4, -5, -6, 7]
+
+	negate (abs x) == f (g x)
 	
+	Therefore we can write:
+
+    map (negate . abs) [1, 2, -3, 4, -5, -6, 7]
+  * map (\xs -> negate (sum (tail xs))) [[1..5],[3..6],[1..7]] ==
+     map (negate . sum . tail) [[1..5],[3..6],[1..7]]  
+
+  Function Composition with Multiple Parameters
+  --------------------------------------------- 
+    * Apply them partially so that each function takes only 1 parameter.
+      sum (replicate 5 (max 6.7 8.9))
+      (sum . replicate 5) (max 6.7 8.9)
+      (sum . replicate 5) $ max 6.7 8.9
+    * Steps:
+       1. Write the inner most function and its parameters
+       2. Add a $ in front of it
+       3. Compose all functions that came before without their last parameter.
+	 Eg. replicate 2 (product (map (*3) (zipWith max [1,2] [4,5]))) ==
+		replicate 2 . product . map (*3) $ zipWith max [1,2] [4,5]
+ 
+  Point-Free Style
+  ----------------
+  * reducing duplicate variables from either side of an implementation.
+    Eg. sum' :: (Num a) => [a] -> [a]
+        sum xs = foldl (+) 0 xs
+			or
+	    sum = foldl (+) 0
+
 Things of Interest
 ------------------
  * When to use map versus for comprehension?
@@ -136,12 +211,127 @@ Things of Interest
    or'' :: [Bool] -> Bool
    or'' = foldr (||) False
    or'' (True : (repeat False))
+ * Function composition patterns are easier to see when using parentheses as opposed to the $ function.
+ * Point-free and $
+	fn x = ceiling (negate (tan (cos (max 50 x)))) ==
+		fn' = ceiling . negate . tan . cos . max 50 /=
+		fn'' ceiling $ negate $ tan $ cos $ max 50 (does not work)
+		
+		why?
+		
+		(.) :: (b -> c) -> (a -> b) -> a -> c (works with functions using currying)
+ 		($) :: (a -> b) -> a -> b (takes in a direct value of a)
 
+  * How does this compile? curry id/uncurry id?
 Questions
 ---------
 
+1. Without looking in prelude define the higher-order library function "curry" that converts a function on pairs into a curried function, and, conversely, the function uncurry that converts curried function with two arguments into a function on pairs.
+
+When would you use these functions?
+
+(currying)
+
+2. Rewrite [f x | x <- xs, p x] using map and filter
+
+(map, filter)
+
+3. Implement the following functions using what you have learnt in the chapter. Try to make them as short and readable as possible.
+
+length' :: [b] -> Integer
+append' :: [a] -> [a] -> [a]
+flatten' :: [[a]] -> [a]
+flatmap' :: (a -> [b]) -> [a] -> [b]
+
+(everything!)
+
+4. Using folds, define a function
+
+dec2nat :: [Int ] -> Int 
+
+that converts a decimal number into a natural number
+	eg. dec2nat [2, 3, 4, 5] = 2345
+
+(foldl, lambdas)
+
+5. Rewrite this simple fibonacci function using scans
+
+fib 0 = 0
+fib 1 = 1
+fib n = fib (n-1) + fib (n-2)
+
+(hint: infinite lists and recursion)
+
+6. Convert the following to point free style:
+
+	f x = 5 + 8/x
+
+7. Express fst & snd using curry or uncurry and other Prelude functions (don't use lambdas)
+
 Answers
 -------
+
+1.
+curry' :: ((a,b) -> c) -> a -> b -> c
+curry' f = \x -> \y -> f (x,y)
+
+Used to pass a function that takes a tuple into a function that takes a single arg.
+
+uncurry' :: (a -> b -> c) -> (a,b) -> c
+uncurry' f (x, y) = f x y
+
+Used to pass a function that takes a  2 args into a function that takes a tuple.
+
+2.
+mapWithFilter :: (a-> b) -> (a->Bool) -> [a] -> [b]
+mapWithFilter f p xs = map f (filter p xs)
+
+3.
+
+length' :: [a] -> Integer
+length' = foldl (\a _ -> a + 1) 0
+
+//++
+append' :: [a] -> [a] -> [a]
+append' xs ys = foldr (:) ys xs
+
+
+//concat
+flatten' :: [[a]] -> [a] 
+flatten' = foldr (\b a -> foldr (:) a b) []
+
+flatten'' :: [[a]] -> [a]
+flatten'' xxs = [x | xs <- xxs, x <- xs]
+
+
+//concatMap
+flatMap' :: (a -> [b]) -> [a] -> [b]
+flatMap' f xs = flatten' $ map f xs
+
+4.
+dec2nat :: [Int] -> Int
+dec2nat [] = 0
+dec2nat xs = read (foldl (\a v -> a ++ show v) "" xs)
+
+5.
+fib' :: Integer -> Integer
+fib' n
+ | n == 0 = 0
+ | n == 1 = 1
+fib' n =  last $ scanl1 (\a b -> fib' (b - 1) + fib' (b - 2)) [2..n]
+
+6.
+fivePlusEightBy x = (8/x) + 5
+
+7.
+
+ref:http://www.reddit.com/r/haskell/comments/l4gst/can_someone_write_the_solution_for_the_exercises/
+
+fst' :: (a,b) -> a
+fst' = uncurry const
+
+snd' :: (a, b) -> b
+snd' = uncurry $ flip const
 
 Asides
 ------

@@ -141,3 +141,76 @@ or' = foldr (||) False
 
 or'' :: [Bool] -> Bool
 or'' = foldr (||) False
+
+sqrtUnder1000 :: Integer
+sqrtUnder1000 =  toInteger (length (takeWhile (< 1000) (scanr1 (+)  (map (sqrt) [1..]))) + 1)
+
+dec2nat :: [Int] -> Int
+dec2nat [] = 0
+dec2nat xs = read (foldl (\a v -> a ++ show v) "" xs)
+
+fivePlusEightBy x = (8/x) + 5
+
+curry' :: ((a,b) -> c) -> a -> b -> c
+curry' f = \x -> \y -> f (x,y)
+
+uncurry' :: (a -> b -> c) -> (a,b) -> c
+uncurry' f (x, y) = f x y
+
+mapWithFilter :: (a-> b) -> (a->Bool) -> [a] -> [b]
+mapWithFilter f p xs = map f (filter p xs)
+
+fib 0 = 0
+fib 1 = 1
+fib n = fib (n-1) + fib (n-2)
+
+fib' :: Integer -> Integer
+fib' n
+ | n == 0 = 0
+ | n == 1 = 1
+fib' n =  last $ scanl (\a b -> fib' (b - 1) + fib' (b - 2)) 0 [2..n]
+
+length' :: [a] -> Integer
+length' = foldl (\a _ -> a + 1) 0
+
+append' :: [a] -> [a] -> [a]
+append' xs ys = foldr (:) ys xs
+
+flatten' :: [[a]] -> [a]
+flatten' = foldr (\b a -> foldr (:) a b) []
+
+flatten'' :: [[a]] -> [a]
+flatten'' xxs = [x | xs <- xxs, x <- xs]
+
+
+flatMap' :: (a -> [b]) -> [a] -> [b]
+flatMap' f xs = flatten' $ map f xs
+
+
+fn x = ceiling (negate (tan (cos (max 50 x))))
+fn' = ceiling . negate . tan . cos . max 50
+-- fn'' = ceiling $ negate $ tan $ cos $ max 50
+
+{-- 
+curry f = \x y -> f (x, y)
+uncurry f = \(x, y) -> f x y
+--}
+
+fst' :: (a,b) -> a
+fst' = uncurry const
+
+snd' :: (a, b) -> b
+snd' = uncurry $ flip const
+
+testProb1Curry = (curry' fst) 11 22 == 11
+testProb1Uncurry = (uncurry' (+)) (12,23) == 35
+testProb2  = mapWithFilter (+11) odd [1..10] == [12,14,16,18,20]
+testProb3Length  = length' [1..10] == 10
+testProb3Append  = append' "has" "kell" == "haskell"
+testProb3Flatten = flatten' ["abc","def","ghi"] == "abcdefghi"
+testProb3Flatmap = flatMap' (replicate 3) [1..4] == [1,1,1,2,2,2,3,3,3,4,4,4]
+testProb4 = dec2nat [2, 3, 4, 5] == 2345
+testProb5 = fib' 10 == 55
+testProb6 = fivePlusEightBy 2 == 9
+testProb7Fst = fst' (1, 2) == 1
+testProb7Snd = snd' (1, 2) == 2
