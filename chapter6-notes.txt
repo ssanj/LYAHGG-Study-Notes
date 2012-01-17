@@ -52,7 +52,7 @@ Higher-Order Functions
   ------------------------------------------
 	* Passing in functions with more than a single parameter to map results in partial application of that function.
 	Eg.  zipWith ($) (map (*) [1..5]) [100,200..500] = [100,400,900,1600,2500]
-	
+	* Partial application is also known as "eta reduction".
   Lambdas
   -------
    * Anonymous functions (functions without a name)
@@ -86,6 +86,10 @@ Higher-Order Functions
 	 because we have currying we can do:
      sum' = foldl (+) 0 //point-free style
    * Does not work on infinite lists.
+   * foldl (f) v [x0...xn] = ((((v f x0) f x1) f x2) .... f xn)
+   * given a list, replace all the : with f ->
+    foldl (f) v [1..4] = ((((v f 1) f 2) f 3) f 4)
+
 
   Right Folds with foldr
   ----------------------
@@ -93,8 +97,11 @@ Higher-Order Functions
    * The accumulator works from right to left.
    * The order of parameters is reversed.
    * ++ is slower than :, so with list manipulation, foldr is preferred.
-   * Work on infinite lists.
-
+   * Work on infinite lists (sometimes).
+   * foldr (f) v [x0...xn] = x0 f (x1 f (x2 f.... (xn f v)))
+   * given a list, replace all the : with f ->
+    foldr (f) v [1..4] = (1 f (2 f (3 f (4 f v))))
+ 
   foldl1 and foldr1 functions
   ---------------------------
    * foldl1/foldr1 :: (a -> a -> a) -> [a] -> a
@@ -210,7 +217,11 @@ Things of Interest
  * Why doesn't this work on infinite lists:
    or'' :: [Bool] -> Bool
    or'' = foldr (||) False
+
+   but this does:	
    or'' (True : (repeat False))
+
+   takeWhile (odd) $ scanr (+) 20 [1..] (does not work)
  * Function composition patterns are easier to see when using parentheses as opposed to the $ function.
  * Point-free and $
 	fn x = ceiling (negate (tan (cos (max 50 x)))) ==
@@ -222,7 +233,14 @@ Things of Interest
 		(.) :: (b -> c) -> (a -> b) -> a -> c (works with functions using currying)
  		($) :: (a -> b) -> a -> b (takes in a direct value of a)
 
+        Because ($) needs a value as per definition and there will only compile without a partial function:
+		fn'' ceiling $ negate $ tan $ cos $ max 50 60 (will work.)
   * How does this compile? curry id/uncurry id?
+  * How does takeWhile temper an infinite list with foldr?
+  * Partial application is also known as "eta reduction".
+  * filter (\a -> fst a > 10) $ zip [5..20] ['a'..'z'] can be reduced:
+		filter ((>10) . fst) zip [5..20] ['a'..'z']
+
 Questions
 ---------
 

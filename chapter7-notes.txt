@@ -1,0 +1,242 @@
+Modules
+--------
+
+  * A module is a file that defines functions, types and type classes.
+  * A Haskell program is a collection of modules
+  * Exports only some of elements inside it
+  * Import a module with the import keyword:
+    import Data.List
+  * Selectively import functions with:
+    import module (function1 ..)
+    Eg. import Data.List (nub, sort)
+  * Hide certain functions with:
+    import module hiding (function1..)
+    Eg. import Data.List hiding (nub)
+  * Avoid name clashes with qualified imports:
+    import qualified module
+    Eg. import qualified Data.Map
+
+    If not you might get an error of the sort:
+
+    Ambiguous occurrence `filter'
+    It could refer to either `Prelude.filter', imported from Prelude
+                          or `Data.Map.filter', imported from Data.Map
+   
+    access functions with qualified_name.function name:
+    Eg. Data.Map.filter
+
+    alias a function with:
+    import qualified module as X
+    Eg. import qualified Data.Map as M, M.filter instead of Data.Map.filter.
+  * A dot between a qualified module name and a function is used to refer to a
+    imported function.
+  * Functions in Data.List: 
+    
+    words ::  String -> [String], separate a String by words
+    Eg. 
+	words "Hello World from Haskell"
+	["Hello","World","from","Haskell"]
+	
+    group :: (Eq a ) => [a] -> [[a]], groups together successive elements 
+	Eg.
+	group "helllloooo"
+	["h","e","llll","oooo"]
+	
+	group [1,2,2,3,2]
+	[[1],[2,2],[3],[2]] (note the trailing 2)
+	
+	sort :: (Ord a) => [a] -> [a]
+	
+	tails :: [a] -> [[a]]
+	
+	isPrefixOf :: (Eq a) => [a] -> [a] -> Bool
+	
+	any :: (a -> Bool) -> [a] -> Bool
+	
+	isPrefixOf :: (Eq a) -> [a] -> [a] -> Bool
+	
+	isInfixOf :: (Eq a) => [a] -> [a] -> Bool
+	
+  Counting words
+  ---------------
+
+	countWords :: String -> [(String, Int)]
+	countWords = map (\b -> (head b, length b)) . group . sort . words
+
+	countWords' :: String -> [(String, Int)]
+	countWords' = foldr (\b a-> (head b, length b) :a) [] . group . sort . words	
+ 
+ * Functions in Data.Char
+
+	ord :: Char -> Int
+	chr :: Int -> Char
+	digitToInt :: Char -> Int
+	
+  Caesar cipher
+  -------------
+
+	encode :: Int -> String -> String
+	encode shift msg = map (\v -> chr $ (ord v) + shift) msg
+
+	encode' :: Int -> String -> String
+	encode' shift = map (chr . (+ shift) . ord)
+
+	decode :: Int -> String -> String
+	decode shift = map (chr. (subtract shift) . ord)
+
+	decode' :: Int -> String -> String
+	decode' shift = encode (negate shift) 	 
+	
+  On Strict Left Folds
+  --------------------
+	* Usage of foldl can lead to stack overflows.
+	* First builds up a big stack of deferred computations.
+	* Once it reaches the empty list, then evaluates the deferred computation.
+	
+  Mapping Keys to Values
+  ----------------------
+    * Association lists are used to store key/value pairs where ordering doesn't matter.
+    findKey :: (Eq k) => k -> [(k,v)] -> v  
+	findKey k = snd . head . filter (\(a, b) -> a == k)
+	
+	findKey' :: (Eq k) => k -> [(k,v)] -> Maybe v  
+	findKey' k [] = Nothing
+	findKey' k ((a, b):xs)
+	  | k ==  a = Just b
+	  | otherwise = findKey' k xs
+	
+	* This is a classic recursive call which can be converted into a fold.
+	
+	findKey'' ::   (Eq k) => k -> [(k,v)] -> Maybe v  
+	findKey'' k = foldr (\(x,y) a -> if (k == x) then Just y else a) Nothing	
+	
+  Enter Data.Map
+  --------------
+    * Data.Map exports functions that clash with Prelude.
+    * fromList :: (Ord k) => [(k,v)] -> Map k v
+        takes an unordered association list and orders it, removing duplicates.
+        keys must implement Ord as opposed to only Eq as per association lists
+
+      fromList [("N", 20), ("M", 1), ("M", 2), ("M", 3), ("N", 10)] ==
+  	    fromList [("M",3),("N",10)]
+	* Map.lookup :: (Ord k) => k -> Map.Map k a -> Maybe a
+	* Map.insert :: (Ord k) => k -> a -> Map.Map k a -> Map.Map k a
+	  inserts values into a list to create a new list
+	* Map.size :: Map.Map k a -> Int
+	* Map.map :: (a -> b) -> Map k a -> Map k b
+	  maps over values of the list
+    * Map.fromListWith :: (Ord k) => (a -> a -> a) -> [(k, a)] -> Map k a	
+      removes duplicates via the function passed in.
+
+	 Map.fromListWith max [(2,3), (2, 5), (2,100), (3,29), (3,22), (3,11), 
+	   (4,22), (4,15)] ==
+	     fromList [(2,100),(3,29),(4,22)]
+	
+	Making Our Own Modules
+	----------------------
+	
+	* When you import a module you can use the functions and types that it exports.
+	
+	Hierarchical Modules
+	--------------------
+	
+	* Each module can be given a number of submodules which can in turn have
+	  submodules of their own (and so on..)
+	* Modules can be grouped by folders.
+	  Eg. Geometry.Cube would have a module file called Cube.hs in a Geometry folder.
+	
+Things of Interest
+------------------	
+
+import Control.Applicative (Applicative(..), (<$>))
+import Control.DeepSeq (NFData(rnf))
+	
+Questions
+---------
+1. Hide foldr and foldl.
+2. What is the standard directory structure for a Haskell project?
+3. Run the function 'l16' in week7.hs to print out:
+
+
+---------------------
+|cstmr-name|loan-num|
+---------------------
+|Adams     |L-16    |
+---------------------
+To do this you'll need to complete the export specification which includes a data type constructor and any functions in the module RelationalAlgebra.hs.
+
+This includes:
+
+Any imports,
+Types:
+Records is an Array of Record
+Record is an Array of Value
+Schema is an Array of Fields
+Value, Field and Name are Strings
+The datatype Table derives Eq and Show and is made of a Name, a Schema and Records.
+Any functions required by week7.hs.
+
+Interesting Asides
+------------------
+
+Answers
+-------	
+	
+1. import Prelude hiding (foldr, foldl)
+2.
+
+app/             -- Root-dir
+  src/           -- For keeping the sourcecode
+    Main.lhs     -- The main-module
+    App/         -- Use hierarchical modules
+      ...
+      Win32/     -- For system dependent stuff
+      Unix/
+    cbits/       -- For C code to be linked to the haskell program
+  testsuite/     -- Contains the testing stuff
+    runtests.sh  -- Will run all tests
+    tests/       -- For unit-testing and checking
+      App/       -- Clone the module hierarchy, so that there is one 
+                    testfile per sourcefile
+    benchmarks/   -- For testing performance
+  doc/           -- Contains the manual, and other documentation
+    examples/    -- Example inputs for the program
+    dev/         -- Information for new developers about the project, 
+                    and eg. related literature
+  util/          -- Auxiliary scripts for various tasks
+  dist/          -- Directory containing what end-users should get
+    build/       -- Contains binary files, created by cabal
+    doc/         -- The haddock documentation goes here, created by cabal
+    resources/   -- Images, soundfiles and other non-source stuff
+                    used by the program
+  _DARCS/        
+  README         -- Textfile with short introduction of the project
+  INSTALL        -- Textfile describing how to build and install
+  TODO           -- Textfile describing things that ought to be done
+  AUTHORS        -- Textfile containing info on who does and has done 
+                    what in this project, and their contact info
+  LICENSE        -- Textfile describing licensing terms for this project
+  app.cabal      -- Project-description-file for cabal
+  Setup.hs       -- Program for running cabal commands
+
+3.
+
+module RelationalAlgebra (
+  printTable,
+  selectf,
+  Table (Table)
+) where
+  
+type Field = String
+
+type Value = String
+
+type Name = String
+
+type Record = [Value]
+
+type Records = [Record]
+
+type Schema = [Field]
+
+data Table = Table Name Schema Records deriving (Show, Eq)
