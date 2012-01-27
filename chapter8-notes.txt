@@ -1,0 +1,432 @@
+Making Our Own Types and Type Classes
+=====================================
+  Make your own data type with the data keyword.
+  Eg. Bool, Maybe a.
+
+  data DataType = ValueConstructor1 Field1 .. Fieldn | Constructor2 Field1 .. Fieldn | ..
+
+  Using Bool as an example:
+
+	  data Bool = True | False
+  The part to the left of the equal sign is the type.
+  The parts to the right of the equal sign are value constructors.
+  Fields of value constructors take in fields of other types.
+  Value constructors specify the values a type can have.
+	  Eg. For the Bool type, True and False are valid value (constructors)
+  Value constructors must start with an uppercase letter.	
+  Value constructors are functions that return the value of the data type. 
+
+Shaping Up
+==========
+
+  data Shape = Circle Float Float Float | Rectangle Float Float Float Float
+  :t Circle = Float -> Float -> Float -> Shape
+  :t Rectangle = Float -> Float -> Float -> Float -> Shape
+
+  Shape is a type (used in function definitions)
+  Circle and Rectangle are value constructors (used in pattern matching)
+
+Improving SHape with the Point Data Type
+========================================
+   If you have a single type constructor it is common to name it the same as the type.
+
+   data Point = Point Float Float deriving Show
+   data Shape = Circle Point Float | Rectangle Point Point deriving Show
+
+   area :: Shape -> Float
+   area (Circle _ r) = pi * r ^ 2
+   area (Rectangle (Point x1 y1) (Point x2 y2)) = (abs $ x2 - x1) * (abs $ y2 - y1)
+
+Exporting Our Shapes in a Module
+================================
+
+   To export all the value constructors for a given type, write: (..)
+     Eg. to export all Shape constructors use: Shape(..)
+         which is the same as Shape(Circle, Rectangle)
+   Using (..) automatically exports any future value constructors you might add
+   If we export only the type without the value constructors:
+     1. We need supply constructor/factory methods to create the type
+     2. The value constructors can't be used in pattern matching.
+     3. Similar to private constructors in Java.
+
+Record Syntax
+=============
+  Format: data Type = ValueConstructor{ field1::Type1, ... fieldn::Typen }
+  Creates functions to look up fields :in the data type.
+  Has named parameters so you can construct values without respecting the order 
+    of fields.
+	Eg.
+	data Person = Person { firstName :: String,
+	                       lastName :: String,
+	                       age :: Int,
+	                       height :: Float,
+	                       phoneNumber :: String,
+	                       flavor :: String } deriving (Show)    
+	Person { lastName = "Finklestein", height = 184.2, phoneNumber = "526-2928", 
+		age = 42, flavor = "Chocolate", firstName = "Meddy" }
+		
+		functions lastName, firstName, flavor etc are created for you automatically.		
+		
+  Use when a value constructor for a data type has many fields or you need accessor 
+    created for you automatically.
+  You can also pattern match with record syntax:
+    funcName Person { first = fn, lastName = ln ....} = ...		
+
+Type Parameters
+===============
+  A type constructor takes a type as a parameter to create a new type.
+  
+   data Maybe a = Nothing | Just a
+
+  Maybe is a type constructor.
+  No value can have a type of Maybe. 
+  A concrete type is a type that is complete (not a type constructor).
+	Eg: Maybe Int, String.
+  If you have a value, the type is always concrete.
+  The type of Nothing in the Maybe data type is polymorphic.	
+	  :t Nothing
+	     Nothing :: Maybe a
+	  Nothing is polymorphic on a.
+	
+Should We Parameterize Our Car?
+==============================
+  When the type that contained inside the data type isn't significant for the data
+   type to work.
+  Eg. data Box a = Empty | Full a deriving Show
+  It's a convention in Haskell not to add type class constraints to data declarations,
+    because they still have to be respecified for each function definition that uses
+    that data type.
+
+Vector von Doom
+===============
+
+data Vector a = Vector a a a deriving Show
+
+vplus :: (Num a) => Vector a -> Vector a -> Vector a                       
+(Vector i j k) `vplus` (Vector l m n) = Vector (i+l) (j+m) (k+n)
+
+dotProd :: (Num a) => Vector a -> Vector a -> Vector a
+(Vector i j k) `dotProd` (Vector l m n) = Vector (i*l) (j*m) (k*n)
+
+vmult :: (Num a) => Vector a -> a -> Vector a
+(Vector i j k) `vmult` m = Vector (i*m) (j*m) (k*m)
+
+vzipWith :: (Num a) => (a -> a -> a) -> Vector a -> Vector a -> Vector a 
+vzipWith f (Vector i j k) (Vector l m n) = Vector (i `f` l) (j `f` m) (k `f` n)
+
+Derived Instances
+==================
+  First make a data type, then think about how it can act (type classes)
+
+Equating People
+===============
+  When deriving Eq, all fields of the data type must also derive Eq. (Is this the 
+	same for all type classes?)
+	
+Show Me How to Read
+===================
+  data Person2 = Person2 { fname :: String, lname :: String } 
+    deriving (Show, Eq, Read)
+  read "Person2 {fname = \"meh\", lname = \"blah\"}" :: Person2
+
+Order in the Court!
+===================
+
+  data Bool = False | True deriving (Ord)
+
+  Because the False value constructor is specified first and the True value constructor is specified after it, we can consider True > False.
+  Nullary value constructors are consider equal (those that don't have fields)
+  If value constructors have fields, the fields are compared to see which is
+    greater/lesser. (The fields must also be instances of Ord)
+
+  Eg. True > False == True
+      Nothing < Just (-10000) == True
+
+  We can't do something like Just (*3) > Just (*2), because (*3) and (*2) 
+    are functions and functions are not instances of Ord.
+
+Any Day of the Week
+===================
+
+  data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
+    deriving (Eq, Show, Read, Ord, Enum, Bounded)
+  
+  Because all the value constructors are nullary, they can be made part of the 
+    Enum type class and the Bounded type class.
+
+  succ Monday
+  pred Thursday
+  Monday < Wednesday == True
+  [Monday .. Friday]
+  [minBound .. maxBound] :: [Day] ?!?!?
+
+Type Synonyms
+=============
+  Alias for a type.
+  Makes it easier to read.
+  Eg. type FirstName = String
+  
+
+Making Our Phonebook Prettier
+=============================
+  Better documentation with alias.
+  Don't over use.
+
+Parameterizing Type Synonyms
+============================ 
+  We can specify a type constructor with too few type parameters and get back a
+    partially applied type constructor.
+
+	type IntMap v = M.Map Int v
+	type IntMap = M.Map Int (point-free)
+
+	myIntMap :: IntMap String
+	myIntMap = M.fromList [(1, "one"), (2, "two")]
+	
+
+Go Left, Then Right
+====================	
+  data Either a b = Left a | Right b deriving (Eq, Ord, Read, Show)
+  If the Left value constructor is used, its type is a.
+  If the Right value constructor is used, its type is b.
+
+	:t Right 20
+	Right 20 :: (Num t) => Either a t
+	
+	:t Left "Boom!"
+	Left "Boom!" :: Either [Char] b
+	
+	If we use the Right value constructor, the first parameter remains polymorphic.
+	If we use the Left value constructor, the second parameter remains polymorphic.
+	
+	Errors on the Left and values on the Right.
+	
+	data LockerState = Taken | Free deriving (Show, Eq)
+	type Code = String
+	type LockerMap = M.Map Int (LockerState, Code)
+
+	lockerLookup :: Int -> LockerMap -> Either String Code
+	lockerLookup n map = case M.lookup n map of
+	      Nothing -> Left $ "Locker" ++ show n ++ " doesn't exist!"
+	      Just (state, code) -> if state /= Taken then Right code else Left $ "Lcoker " ++ show n ++ " is already taken!"
+
+	lockers :: LockerMap
+	lockers = M.fromList[(100, (Taken, "HNDRD")),(200, (Free, "TWOHNDR")),(201, (Taken, "TWOONE"))]      
+	
+Recursive Data Structures
+=========================
+  data List a = Empty | Cons a (List a) deriving (Show, Read, Eq, Ord)	
+
+Improving Our List
+==================
+  Infix constructors must begin with a colon.
+
+	infixr 5 :-:
+	data List a = Empty |  a :-: (List a)  deriving (Show, Read, Eq, Ord)	
+	
+	implement ++
+	infixr 5 ^++
+	(^++) :: List a -> List a -> List a
+	Empty ^++ ys = ys
+	(x :-: xs) ^++ ys = x :-: (xs ^++ ys)
+	
+	
+	Pattern matching works on constructors. There we can do (x :-: xs)
+	
+Let's Plant a Tree
+==================
+  Binary search tree an element points to two other elements.
+  The element to the left is smaller.
+  The element to the right is bigger.
+  A tree is `balanced` is the left and right subtrees are approximately the same
+    height.
+
+    data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show)
+ 
+  Haskell makes it possible to share intermediate states of a tree.
+
+	singleton :: a -> Tree a
+	singleton x = Node x EmptyTree EmptyTree
+
+	treeInsert :: (Ord a) => a -> Tree a -> Tree a
+	treeInsert x EmptyTree = singleton x
+	treeInsert x (Node a left right)
+	  | x == a = Node x left right
+	  | x < a = Node a (treeInsert x left) right
+	  | x > a = Node a left (treeInsert x right)	
+	
+	treeElem :: (Ord a) => a -> Tree a -> Bool
+	treeElem x EmptyTree = False
+	treeElem x (Node a left right)  
+	  | x == a = True
+	  | x < a = treeElem a left
+	  | x > a = treeElem a right
+	
+	* Anything that traverses a list one item at a time and returns a value
+	  can be implemented in terms of a fold.
+
+Type Classes 102
+================
+  The behaviour of type classes is achieved by defining functions or just type
+    declarations that we then implement.		
+  When we say a type is an instance of a type class, we mean that we can use
+    the functions that the type classes defines within that type.
+
+Inside the Eq Type Class
+=========================
+
+  class Eq a where
+    (==) :: a -> a -> Bool
+	(/=) :: a -> a -> Bool
+	x == y = not (x /= y)
+	x /= y = not (x == y)
+	
+  It's not mandatory to implement the function bodies themselves; just their type
+    declarations.
+  The Eq functions are defined in terms of "mutual recursion".	
+  Functions of the type class have the type class as a class constraint:
+    Eg. :t (==) 	
+        (==) :: (Eq a) => a -> a -> Bool
+  
+  The class keyword is for defining new type classes.
+  The instance keyword is for defining instances of type classes.
+  Because == was defined in terms of /= and vice versa, we need to overwrite only
+    one of them in the instance declaration.
+  Minimal Complete Definition - The minimum of functions that we must implement so
+    that our type can be part of a type class.
+        
+Traffic Light Data Type
+=======================        
+        
+    data TrafficLight = Red | Yellow | Green deriving (Enum, Bounded)
+
+    instance Eq TrafficLight where
+      Red == Red = True
+      Yellow == Yellow = True
+      Green == Green = True
+      _ == _ = False
+
+
+    instance Show TrafficLight where
+      show Red = "Red Light"
+      show Yellow = "Yellow Light"
+      show Green = "Green Light"        
+        
+  Deriving Show instead of implementing it like about would just return the name
+    of the value constructor.
+    
+Subclassing
+===========
+  You can also make type classes that are subclasses of other type classes.
+  
+  Given:
+    class (Eq a) => Num a where ...
+    
+  We state that our type a must be a instance of Eq. 
+  We are essentially saying we need to make an instance of Eq before we make an
+    instance of Num.
+    
+Parameterized Types As Instances of Type Classes
+================================================
+  All types in functions must be concrete.
+  
+  instance (Eq m) => Eq (Maybe m) where
+    Just x == Just y = x ==y
+    Nothing == Nothing = True
+    _ = _ = False    
+         
+  We use a parameterized type with a type variable as "a" to Eq:
+    class Eq a where         
+  The parameter m has to be an instance of Eq - see class constraint.
+  Class constraints in class declarations are used for making a type class a
+    subclass of another type class.
+  Class constraints in instance declarations are used to express requirements
+    about the contents of some type.    
+    
+A Yes-No Type Class
+===================
+  class YesNo a where
+    yesno :: a -> Bool
+
+
+  instance YesNo Int where
+    yesno n 
+      | n <= 0 = False
+      | otherwise = True
+   
+  instance YesNo [] where
+    yesno [] = False
+    yesno _ = True    	
+    
+    We can't use [] as the type parameter to YesNo as List is a type constructor not a
+     type. If we do we get the following:
+     
+         `[]' is not applied to enough type arguments
+         The first argument of `YesNo' should have kind `*',
+         but `[]' has kind `* -> *'
+         In the instance declaration for `YesNo []'
+    
+         yesnoIf :: (YesNo y) => y -> a -> a -> a
+         yesnoIf yesnoVal x y = if yesno yesnoVal then x else y
+
+
+
+
+
+
+Questions
+=========
+
+1. Explain the difference between type constructors and value constructors.
+
+2. Create a Haskell data type to represent currencies. Use record syntax. Include
+   fields for the currency values and names, plus any other fields you like. 
+   Make sure you have at least two value constructors (eg. Aussie dollars and GBPs 
+   or notes and coins). Derive any relevant type classes (eg. Ord, Eq). 
+   Try to include an intermediate data type.
+3. Create a new data type to represent a currency supply (a collection of currencies
+   and the number of units of each). Include a type parameter in your constructor
+   representing the key that will be used to look up currencies in the supply (or some
+   other type parameter if you prefer). The type should be able to hold units of
+   multiple currency values (although only one currency type). Make the currency
+   supply type an instance of least two type classes by hand. Add type synonyms to one
+   or both of your data types where appropriate to improve readability.
+
+Things of Interest
+==================	
+  1. Why do type constructors always return the type and not the specific instance of 
+     the type?
+  2. When a record syntaxed data type is created, what happens when there is already
+     a function definition of the same type as the automatically generated 
+		field accessors?
+		Multiple declarations of `blah'
+		    Declared at: 	/Users/sanjivsahayam/projects/codeExercises/HaskellStudyGroupBrisbane/ChapterNotes/chapter8.hs:29:0
+			                 /Users/sanjivsahayam/projects/codeExercises/HaskellStudyGroupBrisbane/ChapterNotes/chapter8.hs:37:23
+  3. What is the benefit of data types and functions over objects with functions within them?
+  4. What is the difference between class constraints on class declarations and 
+    instance declarations?
+  5. Can't access Data.Map.foldr
+    
+   GCHI --> :t M.foldr
+
+    <interactive>:1:0:
+        Failed to load interface for `M':
+          Use -v to see a list of the files searched for.
+    GCHI --> :t M.foldl
+
+Answers
+=======
+
+1. Type constructor, is a constructor that needs one or more types to 
+   construct a concrete type. Given types, it creates a type.
+   
+   Value constructor, is a constructor that takes in values of the defined field
+    types to create values of a given data type. Given values of a type, it creates
+    a value of a type.
+
+2. 
+
+data Currency = Coin { value :: Float, name :: String } | Note { value :: Float, name :: String }  deriving (Show, Read, Eq, Ord)
+
+Interesting Asides
+==================
